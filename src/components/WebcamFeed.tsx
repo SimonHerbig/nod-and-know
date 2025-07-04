@@ -187,7 +187,7 @@ const WebcamFeed: React.FC<WebcamFeedProps> = ({
       <div className="mt-4 space-y-3">
         {!fallbackMode && (
           <div className="flex justify-center gap-4 text-sm mb-2">
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
                   faces.length > 0 ? 'bg-green-500' : 'bg-gray-500'
@@ -196,15 +196,15 @@ const WebcamFeed: React.FC<WebcamFeedProps> = ({
               <span className="text-gray-300">
                 {faces.length} face{faces.length !== 1 ? 's' : ''}
               </span>
-            </div>
-            <div className="flex items-center gap-2">
+            </div> */}
+            {/* <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
                   fps > 15 ? 'bg-green-500' : fps > 10 ? 'bg-yellow-500' : 'bg-red-500'
                 }`}
               />
               <span className="text-gray-300">{Math.round(fps)} FPS</span>
-            </div>
+            </div> */}
           </div>
         )}
 
@@ -220,15 +220,15 @@ const WebcamFeed: React.FC<WebcamFeedProps> = ({
         <div className="flex justify-center gap-8 text-base md:text-lg">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-green-500 rounded-full" />
-            <span className="text-green-400">Nod = YES</span>
+            <span className="text-green-400">Nod for YES</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-500 rounded-full" />
-            <span className="text-red-400">Shake = NO</span>
+            <span className="text-red-400">Shake for NO</span>
           </div>
         </div>
 
-        {isPreparing && (
+        {/* {isPreparing && (
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-900/20 border border-blue-600 rounded-lg">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
@@ -244,7 +244,7 @@ const WebcamFeed: React.FC<WebcamFeedProps> = ({
               <span className="text-yellow-400 text-sm">Processing gesture...</span>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
