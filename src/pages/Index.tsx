@@ -12,30 +12,101 @@ import HelpDialog from '@/components/HelpDialog';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
-const SECURITY_QUESTIONS = [
-  "Do you reuse the same password across multiple accounts?",
-  "Have you enabled two-factor authentication on your main email?",
-  "Do you use your fingerprint to unlock your phone?",
-  "Would you click a link in an unexpected email from your bank?",
-  "Do you regularly update your software when prompted?",
-  "Would you connect to free public WiFi for online banking?",
-  "Do you backup your important files regularly?",
-  "Would you share your login credentials with a close friend?"
+export interface SecurityQuestionSet {
+  recommended: 'yes' | 'no';
+  question: string;
+  followUps: string[];
+}
+
+const SECURITY_QUESTIONS: SecurityQuestionSet[] = [
+  {
+    recommended: 'no',
+    question: "Do you reuse the same password across multiple accounts?",
+    followUps: [
+      "Was sind für dich die Gründe, ein Passwort nicht mehrfach zu verwenden?",
+      "Wie gehst du mit der Herausforderung um, dir viele Passwörter merken zu müssen?",
+      "Nutzt du einen Passwortmanager oder ein anderes System zur Verwaltung?",
+      "Hast du (oder jemand, den du kennst) schon mal Probleme gehabt wegen Passwort-Wiederverwendung?"
+    ]
+  },
+  {
+    recommended: 'yes',
+    question: "Have you enabled two-factor authentication on your main email?",
+    followUps: [
+      "Was ist 2FA?",
+      "Warum ist 2FA sicherer?",
+      "Was hält dich davon ab (oder hat dich motiviert), 2FA zu aktivieren?",
+      "Würdest du 2FA jemandem empfehlen, der sich nicht so gut mit Technik auskennt?"
+    ]
+  },
+  {
+    recommended: 'yes',
+    question: "Do you use your fingerprint to unlock your phone?",
+    followUps: [
+      "Fühlst du dich mit biometrischer Entsperrung sicherer oder unsicherer – warum?",
+      "Gibt es Situationen, in denen du lieber ein Passwort als deinen Fingerabdruck benutzt?",
+      "Hast du Bedenken, deine biometrischen Daten einem Gerät anzuvertrauen?",
+      "Denkst du, Bequemlichkeit spielt eine größere Rolle als Sicherheit bei der Wahl der Entsperrmethode?"
+    ]
+  },
+  {
+    recommended: 'no',
+    question: "Would you click a link in an unexpected email from your bank?",
+    followUps: [
+      "Wie würdest du überprüfen, ob so eine E-Mail echt ist?",
+      "Ist dir oder jemandem in deinem Umfeld schon mal sowas passiert?",
+      "Wie gehst du generell mit verdächtigen E-Mails um?",
+      ""
+    ]
+  },
+  {
+    recommended: 'yes',
+    question: "Do you regularly update your software when prompted?",
+    followUps: [
+      "Was sind für dich die Vor- oder Nachteile automatischer Updates?",
+      "Hattest du schon mal Probleme nach einem Softwareupdate?",
+      "Wie wichtig findest du Updates im Hinblick auf Sicherheit?",
+      "Wie update ich meine Geräte?"
+    ]
+  },
+  {
+    recommended: 'no',
+    question: "Would you connect to free public WiFi for online banking?",
+    followUps: [
+      "Welche Risiken siehst du beim Online-Banking über öffentliches WLAN?",
+      "Gibt es Alternativen, die du stattdessen nutzt (z. B. Mobile-Daten)?",
+      "Was müsste passieren, damit du dich mit öffentlichem WLAN sicher fühlst?",
+      "Kennst du Beispiele, wo öffentliches WLAN zu Problemen geführt hat?"
+    ]
+  },
+  {
+    recommended: 'yes',
+    question: "Do you backup your important files regularly?",
+    followUps: [
+      "Wie sicherst du deine Dateien – lokal, in der Cloud oder beides?",
+      "Hast du schon mal Daten verloren? Was hast du daraus gelernt?",
+      "Was hindert dich (oder motiviert dich), regelmäßig Backups zu machen?",
+      "Welche Dateien sind dir besonders wichtig – und warum?"
+    ]
+  },
+  {
+    recommended: 'no',
+    question: "Would you share your login credentials with a close friend?",
+    followUps: [
+      "In welchen Situationen würdest du das vielleicht tun – oder auf keinen Fall?",
+      "Was wäre dein größtes Bedenken, jemandem deine Zugangsdaten zu geben?",
+      "Wie handhabst du geteilte Zugänge z. B. bei Streamingdiensten?",
+      "Findest du, Vertrauen rechtfertigt so eine Handlung – oder nicht?"
+    ]
+  }
 ];
 
-const RECOMMENDED_ANSWERS: ('yes' | 'no')[] = [
-  'no',
-  'yes',
-  'yes',
-  'no',
-  'yes',
-  'no',
-  'yes',
-  'no'
-];
+// Für Kompatibilität mit bestehender Logik:
+const RECOMMENDED_ANSWERS: ('yes' | 'no')[] = SECURITY_QUESTIONS.map(q => q.recommended);
 
 const QUESTION_DURATION_MS = 45000;
 const COOLDOWN_DURATION_MS = 20000;
+const FOLLOW_UP_INTERVAL_MS = 1000; // 1 Sekunde
 
 const Index = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -52,6 +123,7 @@ const Index = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [qrRoomId, setQrRoomId] = useState<string | null>(null);
   const [qrTopic, setQrTopic] = useState<string | null>(null);
+  const [currentFollowUpIndex, setCurrentFollowUpIndex] = useState(0);
   
   // Track which face IDs have voted for which questions (persisted across question changes)
   const faceVotesRef = useRef<Record<number, Set<number>>>({});
@@ -115,6 +187,19 @@ const Index = () => {
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [isCooldown, currentQuestion]);
+
+  // Follow-up Fragen Rotation
+  useEffect(() => {
+    setCurrentFollowUpIndex(0); // Reset bei Fragewechsel
+    const followUps = SECURITY_QUESTIONS[currentQuestion].followUps;
+    if (!followUps.length) return;
+    const interval = setInterval(() => {
+      setCurrentFollowUpIndex(prev =>
+        (prev + 1) % followUps.length
+      );
+    }, FOLLOW_UP_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [currentQuestion]);
 
   // -----------------------------------------
   // 1) Memoized Callback: handleGestureDetected
@@ -262,13 +347,20 @@ const Index = () => {
         </div>
 
         {isCooldown ? (
-          <CooldownDisplay
-            recommended={RECOMMENDED_ANSWERS[currentQuestion]}
-            remaining={cooldownRemaining}
-          />
+          <>
+            <CooldownDisplay
+              recommended={RECOMMENDED_ANSWERS[currentQuestion]}
+              remaining={cooldownRemaining}
+            />
+            {SECURITY_QUESTIONS[currentQuestion].followUps.length > 0 && (
+              <div className="mt-4 text-lg text-purple-200 text-center">
+                {SECURITY_QUESTIONS[currentQuestion].followUps[currentFollowUpIndex]}
+              </div>
+            )}
+          </>
         ) : (
           <QuestionDisplay
-            question={SECURITY_QUESTIONS[currentQuestion]}
+            question={SECURITY_QUESTIONS[currentQuestion].question}
             questionIndex={currentQuestion + 1}
             totalQuestions={SECURITY_QUESTIONS.length}
             timeRemaining={timeRemaining}
@@ -416,7 +508,7 @@ const Index = () => {
         {/* Chat Interface Modal */}
         {isDiscussionOpen && (
           <ChatInterface
-            question={qrTopic ?? SECURITY_QUESTIONS[currentQuestion]}
+            question={qrTopic ?? SECURITY_QUESTIONS[currentQuestion].question}
             roomId={qrRoomId ?? undefined}
             onClose={() => {
               setIsDiscussionOpen(false);
