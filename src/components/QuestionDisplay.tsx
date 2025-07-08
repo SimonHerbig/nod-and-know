@@ -47,8 +47,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         ></div>
       </div>
 
-      <div className="mb-6">
-        <p className="text-gray-200 text-2xl leading-relaxed text-center">
+      <div className="mb-8 mt-20">
+        <p className="text-gray-200 text-4xl leading-relaxed text-center">
           {question}
         </p>
       </div>

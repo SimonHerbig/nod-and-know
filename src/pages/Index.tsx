@@ -262,7 +262,10 @@ const Index = () => {
         )}
 
         {(phase === PHASES.QUESTION || phase === PHASES.RESULTS) && (
-          <Card className="bg-black/50 border-0 p-6 mb-8">
+          <Card
+            className="bg-black/50 border-0 p-6 mb-8 h-screen flex flex-col justify-start"
+            style={{ minHeight: '60vh', maxHeight: '85vh' }}
+          >
             {/* QuestionDisplay nur in Question-Phase */}
             {phase === PHASES.QUESTION && (
               <QuestionDisplay
@@ -292,7 +295,7 @@ const Index = () => {
             )}
 
             {/* WebcamFeed bleibt immer gemountet, Sichtbarkeit über Phase */}
-            <div className="block">
+            <div className="block mt-4">
               <WebcamFeed
                 onGestureDetected={handleGestureDetected}
                 onFaceData={handleFaceData}
